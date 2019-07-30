@@ -166,6 +166,13 @@ estimated_inner_harbor_data <- read.csv("/Users/tdiff/Desktop/td/estimated_inner
 ###### QUESTIONS ##########################
 ###########################################
 
+###Data for amina/maris/adam
+amina_clean_inner_harbor_data <- clean_inner_harbor_data %>%
+  select(date, year, month, avg_hourly_temperature_dmh, avg_hourly_heat_index_dmh) %>%
+  group_by(year, month) %>%
+  summarise(mean_monthly_temperature = mean(avg_hourly_temperature_dmh),
+            mean_monthly_heat_index = mean(avg_hourly_heat_index_dmh))
+
 # Our goal is to find out how frequent extremely high temperatures have been in Baltimore over the last century. 
 
 #FOR INNER HARBOR: What have the patterns been with 90+, 103+ heat index days -- key values for heat index? What years have had the most of these days? What have the longest stretches been? Are there more recently that have been intense?
