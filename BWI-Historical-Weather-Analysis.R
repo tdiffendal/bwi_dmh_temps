@@ -14,6 +14,7 @@ install.packages("janitor")
 install.packages("weathermetrics")
 install.packages("ggplot2")
 install.packages("reshape")
+install.packages("writexl")
 
 library(tidyverse)
 library(stringr)
@@ -23,6 +24,7 @@ library(janitor)
 library(weathermetrics)
 library(ggplot2)
 library(reshape)
+library(writexl)
 
 ##############################
 ##### LOAD DATA ##############
@@ -30,10 +32,10 @@ library(reshape)
 
 
 # Load Baltimore Inner Harbor Temperature Data
-bwi_data <- read_csv("/Users/tdiff/Desktop/td/baltimore-bwi-temperature/BWI.csv")
+bwi_data <- read_csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/old-data/baltimore-bwi-temperature/BWI.csv")
 
 # Load Baltimore Inner Harbor Temperature Data
-inner_harbor_data <- read_excel("/Users/tdiff/Desktop/td/baltimore-inner-harbor-temperature/DMH.xlsx")
+inner_harbor_data <- read_excel("/Users/tdiff/Documents/Github/bwi_dmh_temps/old-data/baltimore-inner-harbor-temperature/DMH.xlsx")
 
 ##############################
 ##### CLEAN DATA #############
@@ -89,8 +91,8 @@ inner_harbor_data <- inner_harbor_data %>%
   distinct()
 
 #Save cleaned files for easy loading
-clean_bwi_data <- write.csv(bwi_data, "/Users/tdiff/Desktop/td/clean_bwi_data.csv")
-clean_inner_harbor_data <- write.csv(inner_harbor_data, "/Users/tdiff/Desktop/td/clean_inner_harbor_data.csv")
+clean_bwi_data <- write.csv(bwi_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_bwi_data.csv")
+clean_inner_harbor_data <- write.csv(inner_harbor_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_inner_harbor_data.csv")
 
 
 ###########################################
@@ -123,17 +125,29 @@ join_bwi_data_w <-
  inner_join(summarized_join, clean_bwi_data, by = c("month", "hour")) %>%
   mutate(adjusted_temp = avg_hourly_temperature_bwi + avgTempDiff,
          adjusted_dew = avg_hourly_dewpoint_bwi + avgDewDiff,
-         adjusted_heat_index = heat.index(t=adjusted_temp, dp=adjusted_dew, temperature.metric = "fahrenheit", round=0),
-         adjusted_relative_humidity = dewpoint.to.humidity(dp = adjusted_dew, t = adjusted_temp, temperature.metric = "fahrenheit"))
+         adjusted_heat_index = heat.index(t=adjusted_temp, 
+                                          dp=adjusted_dew, 
+                                          temperature.metric = "fahrenheit", 
+                                          round=0),
+         adjusted_relative_humidity = dewpoint.to.humidity(dp = adjusted_dew, 
+                                                           t = adjusted_temp, 
+                                                           temperature.metric = "fahrenheit"))
 join_bwi_data_w
 
 #Take new adjusted columns and put into a new table as estimates for inner harbor data
 estimated_inner_harbor_data_w <- join_bwi_data_w %>%
-  select(-avgTempDiff, -avgDewDiff, -avgRhDiff, -avgHiDiff, -avg_hourly_temperature_bwi, -avg_hourly_dewpoint_bwi, -avg_hourly_relative_humidity_bwi, -avg_hourly_heat_index_bwi)
+  select(-avgTempDiff, 
+         -avgDewDiff, 
+         -avgRhDiff, 
+         -avgHiDiff, 
+         -avg_hourly_temperature_bwi, 
+         -avg_hourly_dewpoint_bwi, 
+         -avg_hourly_relative_humidity_bwi, 
+         -avg_hourly_heat_index_bwi)
 estimated_inner_harbor_data_w
 
 #Save newly calculated/estimated inner harbor data going back 70 years
-estimated_inner_harbor_data <- write.csv(estimated_inner_harbor_data_w, "/Users/tdiff/Desktop/td/estimated_inner_harbor_data.csv")
+estimated_inner_harbor_data <- write.csv(estimated_inner_harbor_data_w, "/Users/tdiff/Documents/Github/bwi_dmh_temps/estimated_inner_harbor_data.csv")
 
 #Check estimated data against cleaned inner harbor data
 compare_inner_harbor_data <- estimated_inner_harbor_data %>%
@@ -155,24 +169,16 @@ summarized_compare <- compare_inner_harbor_data %>%
 ###### START HERE ##########################
 ###########################################
 ##Load cleaned files
-clean_bwi_data <- read.csv("/Users/tdiff/Desktop/td/clean_bwi_data.csv") %>%
+clean_bwi_data <- read.csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_bwi_data.csv") %>%
   mutate(date = as.Date(date, format="%Y-%m-%d"))
-clean_inner_harbor_data <- read.csv("/Users/tdiff/Desktop/td/clean_inner_harbor_data.csv") %>%
+clean_inner_harbor_data <- read.csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_inner_harbor_data.csv") %>%
   mutate(date = as.Date(date, format="%Y-%m-%d"))
-estimated_inner_harbor_data <- read.csv("/Users/tdiff/Desktop/td/estimated_inner_harbor_data.csv") %>%
+estimated_inner_harbor_data <- read.csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/estimated_inner_harbor_data.csv") %>%
   mutate(date = as.Date(date, format="%Y-%m-%d"))
 
 ###########################################
 ###### QUESTIONS ##########################
 ###########################################
-
-###Data for amina/maris/adam
-amina_clean_inner_harbor_data <- clean_inner_harbor_data %>%
-  select(date, year, month, avg_hourly_temperature_dmh, avg_hourly_heat_index_dmh) %>%
-  group_by(year, month) %>%
-  summarise(mean_monthly_temperature = mean(avg_hourly_temperature_dmh),
-            mean_monthly_heat_index = mean(avg_hourly_heat_index_dmh))
-
 # Our goal is to find out how frequent extremely high temperatures have been in Baltimore over the last century. 
 
 #FOR INNER HARBOR: What have the patterns been with 90+, 103+ heat index days -- key values for heat index? What years have had the most of these days? What have the longest stretches been? Are there more recently that have been intense?
@@ -183,12 +189,15 @@ hi_over_ninety_dmh <- estimated_inner_harbor_data %>%
   group_by(year, month) %>%
   summarise(count=n())
   
-ggplot(data = hi_over_ninety_dmh, aes(x=year, y=count)) + geom_col() + geom_smooth() +
+ggplot(data = hi_over_ninety_dmh, aes(x=year, y=count)) + 
+  geom_col() + 
+  geom_smooth() + 
+  theme(plot.title = element_text(size = 22)) +
   labs(title = "#Days When Heat Index > 90 in Inner Harbor",
        x = "Year",
        y = "#Days")
 ggsave(filename = "dmh_days_heat_index_over_ninety.png",
-       device = "png", path = "/Users/tdiff/Desktop/td/Graphs",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 ###similar to above but for hours instead of days
@@ -198,12 +207,15 @@ hi_over_ninety_dmh <- estimated_inner_harbor_data %>%
   group_by(year) %>%
   summarise(count=n())
 
-ggplot(data = hi_over_ninety_dmh, aes(x=year, y=count)) + geom_col() + geom_smooth() +
+ggplot(data = hi_over_ninety_dmh, aes(x=year, y=count)) + 
+  geom_col() + 
+  geom_smooth() + 
+  theme(plot.title = element_text(size = 22)) +
   labs(title = "#Hours When Heat Index > 90 in Inner Harbor",
        x = "Year",
        y = "#Hours")
 ggsave(filename = "dmh_hours_heat_index_over_ninety.png",
-       device = "png", path = "/Users/tdiff/Desktop/td/Graphs",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 #Inner harbor heat index >= 103
@@ -214,12 +226,15 @@ hi_over_103_dmh <- estimated_inner_harbor_data %>%
   group_by(year) %>%
   summarise(count=n())
 
-ggplot(data = hi_over_103_dmh, aes(x=year, y=count)) + geom_col() + geom_smooth() +
+ggplot(data = hi_over_103_dmh, aes(x=year, y=count)) + 
+  geom_col() + 
+  geom_smooth() + 
+  theme(plot.title = element_text(size = 22)) +
   labs(title = "#Days When Heat Index > 103 in Inner Harbor",
        x = "Year",
        y = "Days")
 ggsave(filename = "dmh_days_heat_index_over_103.png",
-       device = "png", path = "/Users/tdiff/Desktop/td/Graphs",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 #same as above but for hours, not days
@@ -229,12 +244,15 @@ hi_over_103_dmh <- estimated_inner_harbor_data %>%
   group_by(year, month) %>%
   summarise(count=n())
 
-ggplot(data = hi_over_103_dmh, aes(x=year, y=count)) + geom_col() + geom_smooth() +
+ggplot(data = hi_over_103_dmh, aes(x=year, y=count)) + 
+  geom_col() + 
+  geom_smooth() + 
+  theme(plot.title = element_text(size = 22)) +
   labs(title = "#Hours When Heat Index > 103 in Inner Harbor",
        x = "Year",
        y = "#Hours")
 ggsave(filename = "dmh_hours_heat_index_over_103.png",
-       device = "png", path = "/Users/tdiff/Desktop/td/Graphs",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 #Looks like 1980s and 1990s had spikes in the amount of days with heat indexes greater than 90 or 103, with current years trending downward. The only months with hi > 103 are June-September. Months with hi>90 range from May-September, with a couple Octobers every down and then, but no more in recent years than in the past
@@ -248,12 +266,15 @@ hi_over_ninety_bwi <- clean_bwi_data %>%
   group_by(year) %>%
   summarise(count=n())
 
-ggplot(data = hi_over_ninety_bwi, aes(x=year, y=count)) + geom_col() + geom_smooth() +
+ggplot(data = hi_over_ninety_bwi, aes(x=year, y=count)) + 
+  geom_col() + 
+  geom_smooth() + 
+  theme(plot.title = element_text(size = 22)) +
   labs(title = "#Days When Heat Index > 90 in BWI",
        x = "Year",
        y = "Days")
 ggsave(filename = "bwi_days_heat_index_over_ninety.png",
-       device = "png", path = "/Users/tdiff/Desktop/td/Graphs",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 #same as above but #hours instead of days
@@ -263,12 +284,15 @@ hi_over_ninety_bwi <- clean_bwi_data %>%
   group_by(year) %>%
   summarise(count=n())
 
-ggplot(data = hi_over_ninety_bwi, aes(x=year, y=count)) + geom_col() + geom_smooth() +
+ggplot(data = hi_over_ninety_bwi, aes(x=year, y=count)) + 
+  geom_col() + 
+  geom_smooth() + 
+  theme(plot.title = element_text(size = 22)) +
   labs(title = "#Hours When Heat Index > 90 in BWI",
        x = "Year",
        y = "#Hours")
 ggsave(filename = "bwi_hours_heat_index_over_ninety.png",
-       device = "png", path = "/Users/tdiff/Desktop/td/Graphs",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 #BWI over 103 data
@@ -279,12 +303,15 @@ hi_over_103_bwi <- clean_bwi_data %>%
   group_by(year, month) %>%
   summarise(count=n())
 
-ggplot(data = hi_over_103_bwi, aes(x=year, y=count)) + geom_col() + geom_smooth() +
+ggplot(data = hi_over_103_bwi, aes(x=year, y=count)) + 
+  geom_col() + 
+  geom_smooth() + 
+  theme(plot.title = element_text(size = 22)) +
   labs(title = "#Days When Heat Index > 103 in BWI",
        x = "Year",
        y = "Days")
 ggsave(filename = "bwi_days_heat_index_over_103.png",
-       device = "png", path = "/Users/tdiff/Desktop/td/Graphs",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 #same as above but #hours instead of days
@@ -294,12 +321,15 @@ hi_over_103_bwi <- clean_bwi_data %>%
   group_by(year, month) %>%
   summarise(count=n())
 
-ggplot(data = hi_over_103_bwi, aes(x=year, y=count)) + geom_col() + geom_smooth() +
+ggplot(data = hi_over_103_bwi, aes(x=year, y=count)) + 
+  geom_col() + 
+  geom_smooth() + 
+  theme(plot.title = element_text(size = 22)) +
   labs(title = "#Hours When Heat Index > 103 in BWI",
        x = "Year",
        y = "#Hours")
 ggsave(filename = "bwi_hours_heat_index_over_103.png",
-       device = "png", path = "/Users/tdiff/Desktop/td/Graphs",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 # Have the hottest months of the year (July, August) gotten more hot on average?
@@ -321,13 +351,14 @@ july_august_dmh <-
 
 ggplot(data = july_august_dmh, aes(x=year)) + 
   geom_smooth(aes(y=monthly_average_heat_index_july, color = "July")) +
-  geom_smooth(aes(y=monthly_average_heat_index_august, color = "August")) +
+  geom_smooth(aes(y=monthly_average_heat_index_august, color = "August")) + 
+  theme(plot.title = element_text(size = 22)) +
   labs(title = "Inner Harbor July and August Average Heat Indexes",
        x = "Year",
        y = "Average Heat Index")
 
 ggsave(filename = "dmh_july_august_heat_indexes_smoothed.png",
-       device = "png", path = "/Users/tdiff/Desktop/td",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 ##BWI July/August Average Heat Index Data
@@ -346,20 +377,20 @@ july_august_bwi <-
 
 ggplot(data = july_august_bwi, aes(x=year)) + 
   geom_smooth(aes(y=monthly_average_heat_index_july, color = "July")) +
-  geom_smooth(aes(y=monthly_average_heat_index_august, color = "August")) +
+  geom_smooth(aes(y=monthly_average_heat_index_august, color = "August")) + 
+  theme(plot.title = element_text(size = 22)) +
   labs(title = "BWI July and August Average Heat Indexes",
        x = "Year",
        y = "Average Heat Index")
 
 ggsave(filename = "bwi_july_august_heat_indexes_smoothed.png",
-       device = "png", path = "/Users/tdiff/Desktop/td",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 #It does seem that the average heat index in July and August are rising, but they're rising back to a level reached about 70 years ago
 
-# How many days have not had a heat index BELOW 80 degrees, even at night? Are there more frequent recent stretches
-#Use the minimum heat index value for each day using summarise
-
+# How many days have not had a heat index BELOW 80 degrees, even at night? Are there more frequent recent stretches. Use the minimum heat index value for each day using summarise
+#Data for BWI
 bwi_days_above_80 <- clean_bwi_data %>%
   group_by(year, date) %>%
   summarise(min_heat_index = min(avg_hourly_heat_index_bwi)) %>%
@@ -368,15 +399,18 @@ bwi_days_above_80 <- clean_bwi_data %>%
 #count is 52
 
 ggplot(data=bwi_days_above_80, aes(x=year, y=bwi_days)) + 
-  geom_col() +
-  labs(title = "BWI Number of Days Where Heat Index Stayed Above 80 Degres",
+  geom_col() + 
+  geom_smooth() + 
+  theme(plot.title = element_text(size = 22)) +
+  labs(title = "BWI #Days With Minimum Heat Index Above 80 Degrees",
        x = "Year",
        y = "Number of Days")
 
 ggsave(filename = "bwi_days_above_80_col.png",
-       device = "png", path = "/Users/tdiff/Desktop/td/Graphs",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
+#Data for dmh
 dmh_days_above_80 <- estimated_inner_harbor_data %>%
   group_by(year, date) %>%
   summarise(min_heat_index = min(adjusted_heat_index)) %>%
@@ -385,39 +419,78 @@ dmh_days_above_80 <- estimated_inner_harbor_data %>%
 #count is 322
 
 ggplot(data=dmh_days_above_80, aes(x=year, y=dmh_days)) + 
-  geom_col() +
-  labs(title = "Inner Harbor Number of Days Where Heat Index Stayed Above 80 Degres",
+  geom_col() + 
+  geom_smooth() + 
+  theme(plot.title = element_text(size = 22)) +
+  labs(title = "Inner Harbor Number of Days Where Heat Index Stayed Above 80 Degrees",
        x = "Year",
        y = "Number of Days")
 
 ggsave(filename = "dmh_days_above_80_col.png",
-       device = "png", path = "/Users/tdiff/Desktop/td",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
-dmh_days_above_80_other <- clean_inner_harbor_data %>%
-  group_by(year, date) %>%
-  summarise(min_heat_index = min(avg_hourly_heat_index_dmh)) %>%
-  filter(min_heat_index >= 80) %>%
-  summarise(count=n())
- #count is 259
-
-days_above_80 <-
-  full_join(dmh_days_above_80, bwi_days_above_80, by=c("year")) %>%
-  days_above_80[is.na(days_above_80)] <- 0
-
-#tried using geom_col, but data wouldn't change when position set to dodge. Tried to melt but didn't work:
-
-#melt_days_above_80 <- melt(days_above_80, id = c("year"), measure=c("dmh_days", "bwi_days"))
+days_above_80 <- full_join(dmh_days_above_80, bwi_days_above_80, by=c("year"))
+days_above_80[is.na(days_above_80)] <- 0
 
 ggplot(data=days_above_80, aes(x=year)) + 
   geom_smooth(aes(y=dmh_days, fill = "Inner Harbor")) +
   geom_smooth(aes(y=bwi_days, fill = "BWI")) +
-  labs(title = "Number of Days Where Heat Index Stayed Above 80 Degres",
+  theme(plot.title = element_text(size = 22)) +
+  labs(title = "Number of Days Where Heat Index Stayed Above 80 Degrees",
        x = "Year",
        y = "Number of Days")
 
 ggsave(filename = "days_above_80_smoothed.png",
-       device = "png", path = "/Users/tdiff/Desktop/td",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
+       width = 20, height = 15, units = "in")
+
+#tried using geom_col, but data wouldn't change when position set to dodge. Tried to melt but didn't work
+
+#melt_days_above_80 <- melt(days_above_80, id = c("year"), measure=c("dmh_days", "bwi_days"))
+
+
+##day to night temp differences between BWI and inner harbor on July 2, 2019, hottest day we have on data for 2019 so far
+daily_temp_differences <-
+  left_join(clean_inner_harbor_data, clean_bwi_data, by=c("date", "hour")) %>%
+  dplyr::rename(year = year.x, month = month.x, day = day.x) %>%
+  select(-year.y, -month.y, -day.y) %>%
+  filter(date == "2019-07-02")
+
+  daily_temp_differences[is.na(daily_temp_differences)] <- 0 
+
+ggplot(data=daily_temp_differences, aes(x=hour)) + 
+  geom_line(aes(y=avg_hourly_heat_index_dmh, color = "Inner Harbor")) +
+  geom_line(aes(y=avg_hourly_heat_index_bwi, color = "BWI")) +
+  theme(plot.title = element_text(size = 22)) +
+  labs(title = "Heat Index Differences 2019-07-02",
+       x = "Hour",
+       y = "Heat Index")
+
+ggsave(filename = "heat_index_differences_july_second.png",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
+       width = 20, height = 15, units = "in")
+
+twenty_eighteen_temp_differences <-
+  left_join(clean_inner_harbor_data, clean_bwi_data, by=c("date", "hour")) %>%
+  dplyr::rename(year = year.x, month = month.x, day = day.x) %>%
+  select(-X.x, -year.y, -month.y, -day.y) %>%
+  filter(year == "2018",
+         month == "7") %>%
+  mutate(HiDiff = avg_hourly_heat_index_dmh - avg_hourly_heat_index_bwi) %>%
+  group_by(hour) %>%
+  summarise(meanDifference = mean(HiDiff))
+
+ggplot(data=twenty_eighteen_temp_differences, aes(x=hour, y=meanDifference)) + 
+  geom_line() +
+  theme(plot.title = element_text(size = 22)) +
+  labs(title = "Average Heat Index Differences in July 2018",
+       subtitle = "Inner Harbor - BWI",
+       x = "Hour",
+       y = "Heat Index")
+
+ggsave(filename = "heat_index_differences_july_twenty_eighteen.png",
+       device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
 ##################
@@ -502,3 +575,18 @@ temp_data <- temp_data %>%
   summarise(count = n()) %>%
   arrange(year, month)
 
+
+###Data for amina/maris/adam
+amina_clean_inner_harbor_data <- clean_inner_harbor_data %>%
+  select(date, year, month, avg_hourly_temperature_dmh, avg_hourly_heat_index_dmh) %>%
+  group_by(year, month) %>%
+  summarise(mean_monthly_temperature = mean(avg_hourly_temperature_dmh),
+            mean_monthly_heat_index = mean(avg_hourly_heat_index_dmh))
+
+#hourly heat index from noon on June 27-end day July 3
+adam_clean_inner_harbor_data <- clean_inner_harbor_data %>%
+  select(date, hour, avg_hourly_heat_index_dmh) %>%
+  filter(date >= as.Date("2019-06-27")) %>%
+  filter(row_number() != 1:12)
+
+adam_clean_inner_harbor_data <- write_xlsx(adam_clean_inner_harbor_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/adam_clean_inner_harbor_data.xlsx")
