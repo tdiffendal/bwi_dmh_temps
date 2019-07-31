@@ -30,7 +30,6 @@ library(writexl)
 ##### LOAD DATA ##############
 ##############################
 
-
 # Load Baltimore Inner Harbor Temperature Data
 bwi_data <- read_csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/old-data/baltimore-bwi-temperature/BWI.csv")
 
@@ -90,10 +89,36 @@ inner_harbor_data <- inner_harbor_data %>%
   filter(!is.na(avg_hourly_relative_humidity_dmh)) %>%
   distinct()
 
-#Save cleaned files for easy loading
-clean_bwi_data <- write.csv(bwi_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_bwi_data.csv")
-clean_inner_harbor_data <- write.csv(inner_harbor_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_inner_harbor_data.csv")
+#Read and clean new inner harbor data for July 4-30
+new_inner_harbor_data <- read_csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/old-data/DMH.txt")
 
+new_inner_harbor_data <- new_inner_harbor_data %>%
+  filter(tmpf != 'M', dwpf != 'M') %>%
+  mutate(tmpf = as.numeric(tmpf),
+         dwpf = as.numeric(dwpf)) %>%
+  mutate(date = as.Date(valid, format="%Y-%m-%d")) %>%
+  mutate(year=year(valid)) %>%
+  mutate(month=month(valid)) %>%
+  mutate(hour=hour(valid)) %>%
+  mutate(day=day(valid)) %>%
+  mutate(hour=hour(valid)) %>%
+  distinct(valid, .keep_all = TRUE) %>%
+  mutate(heat_index = heat.index(t=tmpf, dp=dwpf, temperature.metric = "fahrenheit", round=0)) %>%
+  mutate(relative_humidity = dewpoint.to.humidity(dp = dwpf, t = tmpf, temperature.metric = "fahrenheit")) %>%
+  select(date, year, month, day, hour, tmpf, dwpf, relative_humidity, heat_index) %>%
+  group_by(date, year, month, day, hour) %>%
+  summarise(avg_hourly_temperature_dmh = mean(tmpf),
+            avg_hourly_dewpoint_dmh = mean(dwpf),
+            avg_hourly_relative_humidity_dmh = mean(relative_humidity),
+            avg_hourly_heat_index_dmh = mean(heat_index)
+  ) %>%
+  filter(!is.na(avg_hourly_relative_humidity_dmh)) %>%
+  distinct()
+ 
+#Append new inner harbor data to old
+clean_inner_harbor_data <-
+  dplyr::bind_rows(clean_inner_harbor_data, new_inner_harbor_data) %>%
+  select(-X)
 
 ###########################################
 ###### Adjust Inner Harbor Temperatures####
@@ -105,7 +130,7 @@ clean_inner_harbor_data <- write.csv(inner_harbor_data, "/Users/tdiff/Documents/
 # 1. Join the 20 years of DMH data to the 20 years of BWI data.  Join on date and hour, so we end up with a data frame of values for both DMH and BWI for each date and hour in our data set.  Do an inner join, so that if for some reason DMH is missing an hour from its data set (or vice versa), it doesn't mess up our averages. Calculate new columns with difference in temperature, dew point, relative humidity and heat index between BWI and DMH.  Since in almost all cases BWI will be colder than DMH, make it so the difference is positive if DMH is greater than BWI.
 dmhbwi20_w <- 
   inner_join(clean_bwi_data, clean_inner_harbor_data, by = c("date", "hour")) %>%
-  rename(year = year.x, month = month.x, day = day.x) %>%
+  dplyr::rename(year = year.x, month = month.x, day = day.x) %>%
   select(-year.y, -month.y, -day.y) %>%
   mutate(tempDiff = avg_hourly_temperature_dmh - avg_hourly_temperature_bwi,
          dewDiff = avg_hourly_dewpoint_dmh - avg_hourly_dewpoint_bwi,
@@ -125,14 +150,8 @@ join_bwi_data_w <-
  inner_join(summarized_join, clean_bwi_data, by = c("month", "hour")) %>%
   mutate(adjusted_temp = avg_hourly_temperature_bwi + avgTempDiff,
          adjusted_dew = avg_hourly_dewpoint_bwi + avgDewDiff,
-         adjusted_heat_index = heat.index(t=adjusted_temp, 
-                                          dp=adjusted_dew, 
-                                          temperature.metric = "fahrenheit", 
-                                          round=0),
-         adjusted_relative_humidity = dewpoint.to.humidity(dp = adjusted_dew, 
-                                                           t = adjusted_temp, 
-                                                           temperature.metric = "fahrenheit"))
-join_bwi_data_w
+         adjusted_heat_index = heat.index(t=adjusted_temp, dp=adjusted_dew, temperature.metric = "fahrenheit", round=0),
+         adjusted_relative_humidity = dewpoint.to.humidity(dp = adjusted_dew, t = adjusted_temp, temperature.metric = "fahrenheit"))
 
 #Take new adjusted columns and put into a new table as estimates for inner harbor data
 estimated_inner_harbor_data_w <- join_bwi_data_w %>%
@@ -143,11 +162,8 @@ estimated_inner_harbor_data_w <- join_bwi_data_w %>%
          -avg_hourly_temperature_bwi, 
          -avg_hourly_dewpoint_bwi, 
          -avg_hourly_relative_humidity_bwi, 
-         -avg_hourly_heat_index_bwi)
-estimated_inner_harbor_data_w
-
-#Save newly calculated/estimated inner harbor data going back 70 years
-estimated_inner_harbor_data <- write.csv(estimated_inner_harbor_data_w, "/Users/tdiff/Documents/Github/bwi_dmh_temps/estimated_inner_harbor_data.csv")
+         -avg_hourly_heat_index_bwi) %>%
+  select(-X)
 
 #Check estimated data against cleaned inner harbor data
 compare_inner_harbor_data <- estimated_inner_harbor_data %>%
@@ -166,8 +182,14 @@ summarized_compare <- compare_inner_harbor_data %>%
             avg_difference_ri = mean(difference_hi))
 
 ###########################################
-###### START HERE ##########################
+###### Save and load files here ##########################
 ###########################################
+#Save cleaned files for easy loading
+clean_bwi_data <- write.csv(bwi_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_bwi_data.csv")
+clean_inner_harbor_data <- write.csv(clean_inner_harbor_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_inner_harbor_data.csv")
+#Save newly calculated/estimated inner harbor data going back 70 years
+estimated_inner_harbor_data <- write.csv(estimated_inner_harbor_data_w, "/Users/tdiff/Documents/Github/bwi_dmh_temps/estimated_inner_harbor_data.csv")
+
 ##Load cleaned files
 clean_bwi_data <- read.csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_bwi_data.csv") %>%
   mutate(date = as.Date(date, format="%Y-%m-%d"))
@@ -618,5 +640,11 @@ adam_clean_inner_harbor_data <- clean_inner_harbor_data %>%
   select(date, hour, avg_hourly_heat_index_dmh) %>%
   filter(date >= as.Date("2019-06-27")) %>%
   filter(row_number() != 1:12)
-
 adam_clean_inner_harbor_data <- write_xlsx(adam_clean_inner_harbor_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/adam_clean_inner_harbor_data.xlsx")
+ 
+#Adam inner harbor data for July 16-22
+adam_inner_harbor_data_july_sixteen <- new_inner_harbor_data  %>%
+  select(-avg_hourly_dewpoint_dmh, -avg_hourly_relative_humidity_dmh) %>%
+  filter(date > "2019-07-15", 
+         date < "2019-07-23")
+write_xlsx(adam_inner_harbor_data_july_sixteen, "/Users/tdiff/Documents/Github/bwi_dmh_temps/adam_inner_harbor_data_july_sixteen.xlsx")
