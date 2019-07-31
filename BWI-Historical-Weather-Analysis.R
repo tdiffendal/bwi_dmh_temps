@@ -192,7 +192,9 @@ hi_over_ninety_dmh <- estimated_inner_harbor_data %>%
 ggplot(data = hi_over_ninety_dmh, aes(x=year, y=count)) + 
   geom_col() + 
   geom_smooth() + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "#Days When Heat Index > 90 in Inner Harbor",
        x = "Year",
        y = "#Days")
@@ -210,7 +212,9 @@ hi_over_ninety_dmh <- estimated_inner_harbor_data %>%
 ggplot(data = hi_over_ninety_dmh, aes(x=year, y=count)) + 
   geom_col() + 
   geom_smooth() + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "#Hours When Heat Index > 90 in Inner Harbor",
        x = "Year",
        y = "#Hours")
@@ -229,7 +233,9 @@ hi_over_103_dmh <- estimated_inner_harbor_data %>%
 ggplot(data = hi_over_103_dmh, aes(x=year, y=count)) + 
   geom_col() + 
   geom_smooth() + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "#Days When Heat Index > 103 in Inner Harbor",
        x = "Year",
        y = "Days")
@@ -247,7 +253,9 @@ hi_over_103_dmh <- estimated_inner_harbor_data %>%
 ggplot(data = hi_over_103_dmh, aes(x=year, y=count)) + 
   geom_col() + 
   geom_smooth() + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "#Hours When Heat Index > 103 in Inner Harbor",
        x = "Year",
        y = "#Hours")
@@ -269,7 +277,9 @@ hi_over_ninety_bwi <- clean_bwi_data %>%
 ggplot(data = hi_over_ninety_bwi, aes(x=year, y=count)) + 
   geom_col() + 
   geom_smooth() + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "#Days When Heat Index > 90 in BWI",
        x = "Year",
        y = "Days")
@@ -287,7 +297,9 @@ hi_over_ninety_bwi <- clean_bwi_data %>%
 ggplot(data = hi_over_ninety_bwi, aes(x=year, y=count)) + 
   geom_col() + 
   geom_smooth() + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "#Hours When Heat Index > 90 in BWI",
        x = "Year",
        y = "#Hours")
@@ -306,7 +318,9 @@ hi_over_103_bwi <- clean_bwi_data %>%
 ggplot(data = hi_over_103_bwi, aes(x=year, y=count)) + 
   geom_col() + 
   geom_smooth() + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "#Days When Heat Index > 103 in BWI",
        x = "Year",
        y = "Days")
@@ -324,7 +338,9 @@ hi_over_103_bwi <- clean_bwi_data %>%
 ggplot(data = hi_over_103_bwi, aes(x=year, y=count)) + 
   geom_col() + 
   geom_smooth() + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "#Hours When Heat Index > 103 in BWI",
        x = "Year",
        y = "#Hours")
@@ -352,7 +368,9 @@ july_august_dmh <-
 ggplot(data = july_august_dmh, aes(x=year)) + 
   geom_smooth(aes(y=monthly_average_heat_index_july, color = "July")) +
   geom_smooth(aes(y=monthly_average_heat_index_august, color = "August")) + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "Inner Harbor July and August Average Heat Indexes",
        x = "Year",
        y = "Average Heat Index")
@@ -378,7 +396,9 @@ july_august_bwi <-
 ggplot(data = july_august_bwi, aes(x=year)) + 
   geom_smooth(aes(y=monthly_average_heat_index_july, color = "July")) +
   geom_smooth(aes(y=monthly_average_heat_index_august, color = "August")) + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "BWI July and August Average Heat Indexes",
        x = "Year",
        y = "Average Heat Index")
@@ -401,7 +421,9 @@ bwi_days_above_80 <- clean_bwi_data %>%
 ggplot(data=bwi_days_above_80, aes(x=year, y=bwi_days)) + 
   geom_col() + 
   geom_smooth() + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "BWI #Days With Minimum Heat Index Above 80 Degrees",
        x = "Year",
        y = "Number of Days")
@@ -421,7 +443,9 @@ dmh_days_above_80 <- estimated_inner_harbor_data %>%
 ggplot(data=dmh_days_above_80, aes(x=year, y=dmh_days)) + 
   geom_col() + 
   geom_smooth() + 
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "Inner Harbor Number of Days Where Heat Index Stayed Above 80 Degrees",
        x = "Year",
        y = "Number of Days")
@@ -436,7 +460,9 @@ days_above_80[is.na(days_above_80)] <- 0
 ggplot(data=days_above_80, aes(x=year)) + 
   geom_smooth(aes(y=dmh_days, fill = "Inner Harbor")) +
   geom_smooth(aes(y=bwi_days, fill = "BWI")) +
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "Number of Days Where Heat Index Stayed Above 80 Degrees",
        x = "Year",
        y = "Number of Days")
@@ -462,7 +488,9 @@ daily_temp_differences <-
 ggplot(data=daily_temp_differences, aes(x=hour)) + 
   geom_line(aes(y=avg_hourly_heat_index_dmh, color = "Inner Harbor")) +
   geom_line(aes(y=avg_hourly_heat_index_bwi, color = "BWI")) +
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "Heat Index Differences 2019-07-02",
        x = "Hour",
        y = "Heat Index")
@@ -483,7 +511,9 @@ twenty_eighteen_temp_differences <-
 
 ggplot(data=twenty_eighteen_temp_differences, aes(x=hour, y=meanDifference)) + 
   geom_line() +
-  theme(plot.title = element_text(size = 22)) +
+  theme(plot.title = element_text(size = 25),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=15)) +
   labs(title = "Average Heat Index Differences in July 2018",
        subtitle = "Inner Harbor - BWI",
        x = "Hour",
