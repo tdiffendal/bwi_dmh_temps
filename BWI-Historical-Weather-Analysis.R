@@ -155,14 +155,8 @@ join_bwi_data_w <-
 
 #Take new adjusted columns and put into a new table as estimates for inner harbor data
 estimated_inner_harbor_data_w <- join_bwi_data_w %>%
-  select(-avgTempDiff, 
-         -avgDewDiff, 
-         -avgRhDiff, 
-         -avgHiDiff, 
-         -avg_hourly_temperature_bwi, 
-         -avg_hourly_dewpoint_bwi, 
-         -avg_hourly_relative_humidity_bwi, 
-         -avg_hourly_heat_index_bwi) %>%
+  select(-avgTempDiff, -avgDewDiff, -avgRhDiff, -avgHiDiff, -avg_hourly_temperature_bwi, 
+         -avg_hourly_dewpoint_bwi, -avg_hourly_relative_humidity_bwi, -avg_hourly_heat_index_bwi) %>%
   select(-X)
 
 #Check estimated data against cleaned inner harbor data
@@ -201,9 +195,7 @@ estimated_inner_harbor_data <- read.csv("/Users/tdiff/Documents/Github/bwi_dmh_t
 ###########################################
 ###### QUESTIONS ##########################
 ###########################################
-# Our goal is to find out how frequent extremely high temperatures have been in Baltimore over the last century. 
-
-#FOR INNER HARBOR: What have the patterns been with 90+, 103+ heat index days -- key values for heat index? What years have had the most of these days? What have the longest stretches been? Are there more recently that have been intense?
+#FOR INNER HARBOR: What have the patterns been with 90+, 103+ heat index days? What years have had the most of these days? What have the longest stretches been? Are there more recently that have been intense?
 hi_over_ninety_dmh <- estimated_inner_harbor_data %>%
   select(-X.1, -X) %>%
   filter(adjusted_heat_index >= 90) %>%
@@ -370,8 +362,8 @@ ggsave(filename = "bwi_hours_heat_index_over_103.png",
        device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
-# Have the hottest months of the year (July, August) gotten more hot on average?
-#Inner harbor data, done by building a multi-line graph by making months into separate columns, joining, and then plotting; geom_smooth lines are easier to read than geom_line
+#Inner harbor data for July/August: Have the hottest months of the year (July, August) gotten more hot on average?
+#done by building a multi-line graph by making months into separate columns, joining, and then plotting; geom_smooth lines are easier to read than geom_line
 july_dmh <- estimated_inner_harbor_data %>%
   filter(month == 7,
          adjusted_heat_index != "NA") %>%
@@ -401,7 +393,7 @@ ggsave(filename = "dmh_july_august_heat_indexes_smoothed.png",
        device = "png", path = "/Users/tdiff/Documents/Github/bwi_dmh_temps/Graphs",
        width = 20, height = 15, units = "in")
 
-##BWI July/August Average Heat Index Data
+##BWI July/August Average Heat Index Data: Have the hottest months of the year (July, August) gotten more hot on average?
 july_bwi <- clean_bwi_data %>%
   filter(month == 7) %>%
   group_by(year, month) %>%
