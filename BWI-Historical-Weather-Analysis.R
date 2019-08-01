@@ -188,7 +188,8 @@ estimated_inner_harbor_data <- write.csv(estimated_inner_harbor_data_w, "/Users/
 clean_bwi_data <- read.csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_bwi_data.csv") %>%
   mutate(date = as.Date(date, format="%Y-%m-%d"))
 clean_inner_harbor_data <- read.csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_inner_harbor_data.csv") %>%
-  mutate(date = as.Date(date, format="%Y-%m-%d"))
+  mutate(date = as.Date(date, format="%Y-%m-%d")) %>%
+  select(-X)
 estimated_inner_harbor_data <- read.csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/estimated_inner_harbor_data.csv") %>%
   mutate(date = as.Date(date, format="%Y-%m-%d"))
 
@@ -632,11 +633,16 @@ adam_clean_inner_harbor_data <- clean_inner_harbor_data %>%
   select(date, hour, avg_hourly_heat_index_dmh) %>%
   filter(date >= as.Date("2019-06-27")) %>%
   filter(row_number() != 1:12)
-adam_clean_inner_harbor_data <- write_xlsx(adam_clean_inner_harbor_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/adam_clean_inner_harbor_data.xlsx")
+adam_clean_inner_harbor_data <- write_xlsx(adam_clean_inner_harbor_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/data-for-others/adam_clean_inner_harbor_data.xlsx")
  
 #Adam inner harbor data for July 16-22
 adam_inner_harbor_data_july_sixteen <- new_inner_harbor_data  %>%
   select(-avg_hourly_dewpoint_dmh, -avg_hourly_relative_humidity_dmh) %>%
   filter(date > "2019-07-15", 
          date < "2019-07-23")
-write_xlsx(adam_inner_harbor_data_july_sixteen, "/Users/tdiff/Documents/Github/bwi_dmh_temps/adam_inner_harbor_data_july_sixteen.xlsx")
+write_xlsx(adam_inner_harbor_data_july_sixteen, "/Users/tdiff/Documents/Github/bwi_dmh_temps/data-for-others/adam_inner_harbor_data_july_sixteen.xlsx")
+
+#Sean data june and july 2019
+sean_june_july_inner_harbor_data <- clean_inner_harbor_data %>%
+  filter(date > "2019-05-31")
+write_xlsx(sean_june_july_inner_harbor_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/data-for-others/sean_june_july_inner_harbor_data.xlsx")
