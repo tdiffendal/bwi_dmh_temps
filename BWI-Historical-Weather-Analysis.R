@@ -726,3 +726,7 @@ clean_updated_bwi_data <-
   distinct()
 
 write_xlsx(clean_updated_bwi_data, "/Users/tdiff/Documents/Github/bwi_dmh_temps/clean_updated_bwi_data.xlsx")
+
+#read in Martin data
+martin_data <- 
+  read_csv("/Users/tdiff/Documents/Github/bwi_dmh_temps/MTN.txt")

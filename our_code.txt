@@ -1,0 +1,97 @@
+##Packages
+install.packages("tidyverse")
+install.packages("stringr")
+install.packages("lubridate")
+install.packages("readxl")
+install.packages("janitor")
+install.packages("weathermetrics")
+install.packages("ggplot2")
+install.packages("reshape")
+install.packages("writexl")
+install.packages("purrr")
+
+library(tidyverse)
+library(stringr)
+library(lubridate)
+library(readxl)
+library(janitor)
+library(weathermetrics)
+library(ggplot2)
+library(reshape)
+library(writexl)
+
+##code to clean raw data (NOT the xlsx)
+filter(tmpf != 'M', dwpf != 'M') %>%
+mutate(tmpf = as.numeric(tmpf),
+       dwpf = as.numeric(dwpf)) %>%
+mutate(date = as.Date(valid, format="%Y-%m-%d")) %>%
+mutate(year=year(valid)) %>%
+mutate(month=month(valid)) %>%
+mutate(hour=hour(valid)) %>%
+mutate(day=day(valid)) %>%
+mutate(hour=hour(valid)) %>%
+distinct(valid, .keep_all = TRUE) %>%
+mutate(heat_index = heat.index(t=tmpf, dp=dwpf, temperature.metric = "fahrenheit", round=0)) %>%
+mutate(relative_humidity = dewpoint.to.humidity(dp = dwpf, t = tmpf, temperature.metric = "fahrenheit")) %>%
+select(date, year, month, day, hour, tmpf, dwpf, relative_humidity, heat_index) %>%
+group_by(date, year, month, day, hour) %>%
+summarise(avg_hourly_temperature_bwi = mean(tmpf),
+          avg_hourly_dewpoint_bwi = mean(dwpf),
+          avg_hourly_relative_humidity_bwi = mean(relative_humidity),
+          avg_hourly_heat_index_bwi = mean(heat_index)
+) %>%
+filter(!is.na(avg_hourly_relative_humidity_bwi)) %>%
+distinct()
+
+##to calculate average days per year when heat index rose above 90 for inner harbor
+hi_over_ninety_dmh <- updated_estimated_inner_harbor_data %>%
+  filter(avg_hourly_heat_index_dmh >= 90) %>%
+  distinct(date, .keep_all=TRUE) %>%
+  group_by(year) %>%
+  summarise(count=n()) %>%
+  summarise(average_days = mean(count))
+
+
+##to calculate average days per year when heat index rose above 100 for inner harbor
+  hi_over_100_dmh <- updated_estimated_inner_harbor_data %>%
+    filter(avg_hourly_heat_index_dmh >= 100) %>%
+    distinct(date, .keep_all=TRUE) %>%
+    group_by(year) %>%
+    summarise(count=n()) %>%
+    summarise(avg_days_per_year = mean(count))
+
+
+##to calculate average days per year when heat index rose above 105 for inner harbor
+  hi_over_105_dmh <- updated_estimated_inner_harbor_data %>%
+    filter(avg_hourly_heat_index_dmh >= 105) %>%
+    distinct(date, .keep_all=TRUE) %>%
+    group_by(year) %>%
+    summarise(count=n()) %>%
+    summarise(average_days = mean(count))
+
+
+##to calculate average days per year when heat index rose above 90 for BWI
+  hi_over_ninety_bwi <- clean_bwi_data %>%
+    filter(avg_hourly_heat_index_bwi >= 90) %>%
+    distinct(date, .keep_all=TRUE) %>%
+    group_by(year) %>%
+    summarise(count=n()) %>%
+    summarise(average_days = mean(count))
+
+
+##to calculate average days per year when heat index rose above 100 for BWI
+hi_over_100_bwi <- clean_bwi_data %>%
+  select(-X) %>%
+  filter(avg_hourly_heat_index_bwi >= 100) %>%
+  distinct(date, .keep_all=TRUE) %>%
+  group_by(year) %>%
+  summarise(count=n()) %>%
+  summarise(average_days = mean(count))
+
+##to calculate average days per year when heat index rose above 105 for BWI
+hi_over_105_bwi <- clean_bwi_data %>%
+  filter(avg_hourly_heat_index_bwi >= 105) %>%
+  distinct(date, .keep_all=TRUE) %>%
+  group_by(year) %>%
+  summarise(count=n()) %>%
+  summarise(average_days = mean(count))
